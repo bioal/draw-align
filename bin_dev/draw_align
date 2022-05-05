@@ -1,0 +1,41 @@
+#!/usr/bin/perl -w
+use strict;
+use File::Basename;
+use Getopt::Std;
+use DomRefine::Read;
+use DomRefine::Align;
+use DomRefine::Draw;
+my $PROGRAM = basename $0;
+my $USAGE=
+"Usage: cat ALIGNMENT.fasta | $PROGRAM [OUT_FILE_PREFIX]
+";
+
+my %OPT;
+getopts('', \%OPT);
+
+my $TMP_ALIGNMENT = define_tmp_file("$PROGRAM.alignment");
+END {
+    remove_tmp_file($TMP_ALIGNMENT);
+}    
+
+my $OUT_FILE_NAME = $PROGRAM;
+if (@ARGV) {
+    $OUT_FILE_NAME = $ARGV[0];
+}
+
+### Main ###
+my $IMAGE;
+my %COLOR;
+my %PARAM;
+my $OFFSET = 0;
+{
+    system "cat > $TMP_ALIGNMENT";
+    my @gene = ();
+    my @a =();
+    my @b = ();
+    my %p = ();
+    my ($n, $m) = get_alignment_structure_from_file($TMP_ALIGNMENT, \@gene, \@a, \@b, \%p);
+    create_image(\$IMAGE, \%COLOR, [$n], $m, 1, \%PARAM);
+    draw_alignment_simple(\@a, \@b, \%p, \$IMAGE, \%COLOR, \$OFFSET, %PARAM);
+}
+create_png(\$IMAGE, $OUT_FILE_NAME);
