@@ -31,11 +31,12 @@ my $OFFSET = 0;
 {
     system "cat > $TMP_ALIGNMENT";
     my @gene = ();
+    read_fasta_entries($TMP_ALIGNMENT, \@gene);
     my @a =();
     my @b = ();
     my %p = ();
     my ($n, $m) = get_alignment_structure_from_file($TMP_ALIGNMENT, \@gene, \@a, \@b, \%p);
     create_image(\$IMAGE, \%COLOR, [$n], $m, 1, \%PARAM);
-    draw_alignment_simple(\@a, \@b, \%p, \$IMAGE, \%COLOR, \$OFFSET, %PARAM);
+    draw_alignment_simple(\@gene, \@a, \@b, \%p, \$IMAGE, \%COLOR, \$OFFSET, %PARAM);
 }
 create_png(\$IMAGE, $OUT_FILE_NAME);
