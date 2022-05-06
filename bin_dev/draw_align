@@ -16,7 +16,7 @@ getopts('', \%OPT);
 my $TMP_ALIGNMENT = define_tmp_file("$PROGRAM.alignment");
 END {
     remove_tmp_file($TMP_ALIGNMENT);
-}    
+}
 
 my $OUT_FILE_NAME = $PROGRAM;
 if (@ARGV) {
