@@ -2,7 +2,6 @@
 use strict;
 use File::Basename;
 use Getopt::Std;
-use DrawAlign::Read;
 use DrawAlign::Align;
 use DrawAlign::Draw;
 my $PROGRAM = basename $0;
@@ -32,7 +31,7 @@ my $OFFSET = 0;
 {
     my @gene = ();
     my @descr = ();
-    read_fasta_entries($ALIGNMENT_FILE, \@gene, \@descr);
+    read_uniprot_fasta_entries($ALIGNMENT_FILE, \@gene, \@descr);
     my @a =();
     my @b = ();
     my %p = ();
@@ -41,3 +40,34 @@ my $OFFSET = 0;
     draw_alignment_simple(\@gene, \@descr, \@a, \@b, \%p, \$IMAGE, \%COLOR, \$OFFSET, %PARAM);
 }
 create_png(\$IMAGE, $OUT_FILE_NAME);
+
+################################################################################
+### Function ###################################################################
+################################################################################
+
+sub read_uniprot_fasta_entries {
+    my ($fasta_file, $r_gene, $r_descr) = @_;
+
+    my @line = `cat $fasta_file | grep '^>'`;
+    chomp(@line);
+    for my $line (@line) {
+        if ($line =~ /^>(\S+) (.*) OS=(.*)/) {
+            my $gene = $1;
+            my $descr = $2;
+            my $species = $3;
+            my $label = sprintf("%s %s", $species, $descr);
+            push @{$r_gene}, $gene;
+            # push @{$r_descr}, "$species $descr";
+            push @{$r_descr}, sprintf("%-30s %s", $species, $descr);
+        } elsif ($line =~ /^>(\S+) (.*)/) {
+            my $gene = $1;
+            my $descr = $2;
+            my $species = "";
+            my $label = sprintf("%s %s", $species, $descr);
+            push @{$r_gene}, $gene;
+            push @{$r_descr}, sprintf("%-30s %s", $species, $descr);
+        } else {
+            die $line;
+        }
+    }
+}
