@@ -3,11 +3,16 @@ use strict;
 use File::Basename;
 use Getopt::Std;
 use DrawAlign::Align;
-use DrawAlign::Draw;
+use DomRefine::Draw;
 my $PROGRAM = basename $0;
 my $USAGE=
 "Usage: $PROGRAM ALIGNMENT.fasta [-p OUT_FILE_PREFIX]
 ";
+
+use GD;
+my $HIGH = 0.7;
+my $MIDDLE = 0.5;
+my $LOW = 0.3;
 
 my %OPT;
 getopts('p:', \%OPT);
@@ -69,5 +74,50 @@ sub read_uniprot_fasta_entries {
         } else {
             die $line;
         }
+    }
+}
+
+sub draw_alignment_simple {
+    my ($r_gene, $r_descr, $r_a, $r_b, $r_p, $r_image, $h_color, $r_offset, %opt) = @_;
+
+    my $N = @{$r_a};
+    my $M = @{${$r_a}[0]};
+    print STDERR " draw alignment..\n";
+    # conservation
+    for (my $i=0; $i<$N; $i++) {
+        for (my $j=0; $j<$M; $j++) {
+            my $color;
+            if (${$r_b}[$i][$j] == 1) {
+                if (${$r_p}{$j}{${$r_a}[$i][$j]}>= $HIGH) {
+                    $color = ${$h_color}{RED};
+                } elsif (${$r_p}{$j}{${$r_a}[$i][$j]} >= $MIDDLE) {
+                    $color = ${$h_color}{YELLOW};
+                } elsif (${$r_p}{$j}{${$r_a}[$i][$j]} >= $LOW) {
+                    $color = ${$h_color}{CYAN};
+                }
+            }
+            if ($color) {
+                draw_tick($r_image, $color, $opt{X_UNIT}*$j, ${$r_offset}+$opt{Y_UNIT}*$i, %opt, y_pos_shift => $opt{Y_CONSERVATION});
+            }
+        }
+    }
+    # amino acid
+    for (my $i=0; $i<$N; $i++) {
+	for (my $j=0; $j<$M; $j++) {
+	    if (${$r_b}[$i][$j] == 1) {
+		draw_tick($r_image, ${$h_color}{BLACK}, $opt{X_UNIT}*$j, ${$r_offset}+$opt{Y_UNIT}*$i, %opt, y_pos_shift => $opt{Y_AMINO_ACID});
+	    }
+	}
+    }
+    # gene labels
+    for (my $i=0; $i<$N; $i++) {
+	my $gene = ${$r_gene}[$i];
+	${$r_image}->string(gdSmallFont, $opt{MARGIN}, $opt{MARGIN}+${$r_offset}+$opt{Y_UNIT}*$i, $gene, ${$h_color}{BLACK});
+    }
+    # gene_descr
+    for (my $i=0; $i<$N; $i++) {
+	my $descr = ${$r_descr}[$i];
+        # ${$r_image}->string(gdSmallFont, $opt{X_MARGIN}+$opt{X_UNIT}*$M+10+120, $opt{MARGIN}+${$r_offset}+$opt{Y_UNIT}*$i, $descr, ${$h_color}{BLACK});
+        ${$r_image}->string(gdSmallFont, $opt{X_MARGIN}+$opt{X_UNIT}*$M+10, $opt{MARGIN}+${$r_offset}+$opt{Y_UNIT}*$i, $descr, ${$h_color}{BLACK});
     }
 }
