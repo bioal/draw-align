@@ -7,20 +7,21 @@ use DrawAlign::Align;
 use DrawAlign::Draw;
 my $PROGRAM = basename $0;
 my $USAGE=
-"Usage: cat ALIGNMENT.fasta | $PROGRAM [OUT_FILE_PREFIX]
+"Usage: $PROGRAM ALIGNMENT.fasta [-p OUT_FILE_PREFIX]
 ";
 
 my %OPT;
-getopts('', \%OPT);
+getopts('p:', \%OPT);
 
-my $TMP_ALIGNMENT = define_tmp_file("$PROGRAM.alignment");
-END {
-    remove_tmp_file($TMP_ALIGNMENT);
+if (!@ARGV) {
+    print STDERR $USAGE;
+    exit 1;
 }
+my ($ALIGNMENT_FILE) = @ARGV;
 
 my $OUT_FILE_NAME = $PROGRAM;
-if (@ARGV) {
-    $OUT_FILE_NAME = $ARGV[0];
+if ($OPT{p}) {
+    $OUT_FILE_NAME = $OPT{p};
 }
 
 ### Main ###
@@ -29,14 +30,13 @@ my %COLOR;
 my %PARAM;
 my $OFFSET = 0;
 {
-    system "cat > $TMP_ALIGNMENT";
     my @gene = ();
     my @descr = ();
-    read_fasta_entries($TMP_ALIGNMENT, \@gene, \@descr);
+    read_fasta_entries($ALIGNMENT_FILE, \@gene, \@descr);
     my @a =();
     my @b = ();
     my %p = ();
-    my ($n, $m) = get_alignment_structure_from_file($TMP_ALIGNMENT, \@gene, \@a, \@b, \%p);
+    my ($n, $m) = get_alignment_structure_from_file($ALIGNMENT_FILE, \@gene, \@a, \@b, \%p);
     create_image(\$IMAGE, \%COLOR, [$n], $m, 1, \%PARAM);
     draw_alignment_simple(\@gene, \@descr, \@a, \@b, \%p, \$IMAGE, \%COLOR, \$OFFSET, %PARAM);
 }
