@@ -2,7 +2,7 @@
 use strict;
 use File::Basename;
 use Getopt::Std;
-use DrawAlign::Align;
+use DomRefine::Align;
 use DomRefine::Draw;
 my $PROGRAM = basename $0;
 my $USAGE=
